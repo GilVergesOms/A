@@ -1,0 +1,616 @@
+ 
+
+
+
+INTERNET-DRAFT                              Grup A - Software Distribuit
+Intended Status: Proposed Standard             (University of Barcelona)
+Expires:                                                      28/02/2018
+
+
+                   A protocol for the Poker Kuhn game
+
+Abstract
+
+   This protocol is used for the client/server version of the card game
+   'Kuhn poker'.
+
+Status of this Memo
+
+   This Internet-Draft is submitted to IETF in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as
+   Internet-Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/1id-abstracts.html
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html
+
+
+Copyright and License Notice
+
+   Copyright (c) 2018 IETF Trust and the persons identified as the
+   document authors. All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document. Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document. Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+ 
+
+
+Grup A                     Expires 28/02/2018                   [Page 1]
+
+INTERNET DRAFT                 POKER KUHN                     22/02/2018
+
+
+Table of Contents
+
+   1. Introduction  . . . . . . . . . . . . . . . . . . . . . . . . .  3
+   2. The Poker procedure for player and opponent . . . . . . . . . .  3
+   3. The Kuhn poker specification  . . . . . . . . . . . . . . . . .  4
+     3.1. Client Commands Semantics:  . . . . . . . . . . . . . . . .  4
+     3.2. Server Commands Semantics:  . . . . . . . . . . . . . . . .  5
+   4. Command Syntax  . . . . . . . . . . . . . . . . . . . . . . . .  6
+   5. Examples  . . . . . . . . . . . . . . . . . . . . . . . . . . .  8
+   6. Rules of the game . . . . . . . . . . . . . . . . . . . . . . .  9
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 10
+   Discussion . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+Grup A                     Expires 28/02/2018                   [Page 2]
+
+INTERNET DRAFT                 POKER KUHN                     22/02/2018
+
+
+1. Introduction
+
+   Kuhn poker is an extremely simplified form of poker developed by
+   Harold W. Kuhn.
+
+
+2. The Poker procedure for player and opponent
+
+   The Kuhn poker design is based on the following procedure:
+
+      The game is only for two players.
+      One player is the client application and the other is the server
+      application.
+      The player who wants to play connects with the game server using
+      the communication port number 1212.
+      The client has to specify which player wants to be, the first or
+      the second.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+Grup A                     Expires 28/02/2018                   [Page 3]
+
+INTERNET DRAFT                 POKER KUHN                     22/02/2018
+
+
+3. The Kuhn poker specification
+
+   This section presents the different commands used in the Poker
+   protocol.
+
+3.1. Client Commands Semantics:
+
+   First, we start defining the commands used by the client:
+
+   The commands are the following:
+
+      START (STRT):
+
+         With this command the client can start a game with the server,
+         it has to be specified in the arguments if the client wants to
+         play as the first or the second player. 
+         This command starts the TCP session.
+
+      ACTION (ACTN):
+
+         This command is used to notify to the server which action does
+         the client choose at a given state of the game. After every
+         action the client has to wait for a response unless the game
+         has ended.
+         There are four possible actions: 
+         CHECK (CK), BET (BT), CALL (CL) and FOLD (FD)
+
+      DISCONNECT (DISC):
+
+         This command is used to notify the server that the client wants
+         to end the TCP session.
+            (Discussion about this topic is needed).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+Grup A                     Expires 28/02/2018                   [Page 4]
+
+INTERNET DRAFT                 POKER KUHN                     22/02/2018
+
+
+3.2. Server Commands Semantics:
+
+   Now, we define the commands used by the server:
+
+      CARD (CARD):
+
+         This command is used to notify the client which card does it
+         has in this game. It is also used to show the card held by the
+         server in a showdown (Explanation of this end and the rules of
+         the game in the section 5).
+         There are only three cards:
+         Jack (_K), Queen (_Q), King (_K).
+
+      ACTION (ACTN):
+
+         This command is used to notify the client which action the
+         server decides to take in a given state of the game. After
+         every action the server has to wait for a response unless the
+         game has ended.
+         There are four possible actions: 
+         CHECK (CK), BET (BT), CALL (CL) and FOLD (FD)
+
+      DISCONNECT (DISC):
+
+         This command is used to notify the client that the server is
+         about to end the TCP session.
+         (Discussion about this topic needed).
+
+      FAIL (FAIL):
+
+         This command is used to notify about any error to the client. 
+         There are only two possible arguments for this command: 
+         Wrong Action and No Coins. 
+         The first is used to notify that an action received can't be
+         performed at the given state of the game and the second is used
+         to notify that the client is trying to perform an action which
+         requires more coins than it has.
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+Grup A                     Expires 28/02/2018                   [Page 5]
+
+INTERNET DRAFT                 POKER KUHN                     22/02/2018
+
+
+4. Command Syntax
+
+   The commands consist of a command code, sometimes followed by a space
+   and one argument field. 
+   Command codes are four alphabetic characters. 
+   Upper and lower case alphabetic characters are to be treated
+   identically.
+
+
+   Thus, any of the following may represent the STRT command:
+
+      STRT Strt strt StRt StRT
+
+   This also applies to any symbols representing parameter values.
+   Argument field is composed for only one argument separated from the
+   command by a space.
+   An argument is a two digit code, each one being an ASCII character.
+
+
+   The following are the Poker commands (spaces in the text are only for
+   the visualization):
+
+      STRT <SP> <player>
+
+      CARD <SP> <card>
+
+      ACTN <SP> <action>
+
+      FAIL <SP> <errcode>
+
+      DISC
+
+   The syntax of the above argument fields is given below (using BNF
+   notation where applicable).
+   The DISCONNECT command does not need any argument.
+
+      <player>  ::= "P1" | "P2"
+
+      <card>    ::= "_J" | "_Q" | "_K"
+
+      <action>  ::= "CK" | "BT" | "CL" | "FD"
+
+      <errcode> ::= "WA" | "NC"
+
+      <SP>      ::= The space character (ASCII code 32)
+
+
+
+ 
+
+
+Grup A                     Expires 28/02/2018                   [Page 6]
+
+INTERNET DRAFT                 POKER KUHN                     22/02/2018
+
+
+   As explained above each argument is composed by two ASCII characters,
+   for example:
+   "P1" would be the ASCII code 80 followed by the ASCII code 49.
+
+
+   The following are syntactically correct commands:
+
+      STRT "P1"
+
+      CARD "_K"
+
+      ACTN "CK"
+
+      FAIL "NC"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+Grup A                     Expires 28/02/2018                   [Page 7]
+
+INTERNET DRAFT                 POKER KUHN                     22/02/2018
+
+
+5. Examples
+
+   Here are some examples of possible games:
+
+   Example 1 (Client plays as the first player and the game ends in a
+   showdown):
+
+      Client (Start as the player 1):
+         STRT "P1"
+
+      Server (Gives card (Queen)):
+         CARD "_Q"
+
+      Client (Action BET):
+         ACTN "BT"
+
+      Server (Action CALL):
+         ACTN "CL"
+
+      Server (Shows card):
+         CARD "_K"
+
+      Client (The game has ended and the client disconnects (it can
+      start a new game too)):
+         DISC
+
+
+   Example 2 (Client plays as the second player and the game ends in a
+   fold by the server):
+
+      Client (Starts as the player 2):
+         STRT "P2"
+
+      Server (Gives card (Jack)):
+         CARD "_J"
+
+      Client (Action BET):
+         ACTN "BT"
+
+      Server (Action FOLD):
+         ACTN "FD"
+
+      Client (The game has ended and the client disconnects (it can
+      start a new game too)):
+         DISC
+
+
+
+ 
+
+
+Grup A                     Expires 28/02/2018                   [Page 8]
+
+INTERNET DRAFT                 POKER KUHN                     22/02/2018
+
+
+6. Rules of the game
+
+   There are only three cards: King, Queen, Jack.
+
+   At first both players put an ante (one coin) in the pot and get one
+   card (they can't see the others).
+
+   The first player has to decide if it bets (one coin) or it checks
+   (pass).
+      If the first player checks the second player can check or bet.
+      If the second player checks the game ends in a showdown (explained
+      below).
+
+   Aside from which player bet the next player can call or fold.
+      If that player calls it has to put another coin and the game ends
+      in a showdown.
+      If that player folds the game ends and the other player wins.
+
+   If the game ends in a showdonwn both players show their cards and the
+   player with the higher card wins.
+
+
+   The order for the cards is: Jack < Queen < King.
+
+
+   The player who wins gets all the coins in the pot.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+Grup A                     Expires 28/02/2018                   [Page 9]
+
+INTERNET DRAFT                 POKER KUHN                     22/02/2018
+
+
+Authors' Addresses
+
+
+   Marti Huerta
+
+   Email: noemdeixa@hotmail.com
+
+   Grup A:
+
+   GitHub: https://github.com/UB-GEI-SD/A
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+Grup A                     Expires 28/02/2018                  [Page 10]
+
+INTERNET DRAFT                 POKER KUHN                     22/02/2018
+
+
+Discussion
+
+   There has to be discussed the topic of the DISCONNECT command (if it
+   is necessary) and also any protocol to check if the server/client
+   works in Big Endian or Little Endian.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Grup A                     Expires 28/02/2018                  [Page 11]
