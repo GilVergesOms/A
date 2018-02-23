@@ -133,7 +133,7 @@ INTERNET DRAFT                 POKER KUHN                     22/02/2018
       the second.
 
       The following graph will define each state and possible actions
-      for each player:
+      for each player, it goes from top to down starting from the top:
 
                                     +-----+
                                     | P 1 |
@@ -157,11 +157,11 @@ INTERNET DRAFT                 POKER KUHN                     22/02/2018
                                         -------            --------
 
 
-      In a showdown the server will have to send its card to the client
-      and nothing else. For example, instead of sending the action call,
-      it directly sends his card. The client already knows that the game
-      ends in a showdown.
-
+      Each state is a decision state or a terminal state. Decision
+      states are defined by a box with the player who has to make the
+      decision inside, they can lead to one of the two states below
+      depending on the action chosen. Terminal states are non-decision
+      states where the game ends.
  
 
 
@@ -194,17 +194,17 @@ INTERNET DRAFT                 POKER KUHN                     22/02/2018
          This command is used to notify to the server which action does
          the client choose at a given state of the game. After every
          action the client has to wait for a response unless the game
-         has ended.
+         has ended. In a showdown the game ends when the client receives
+         the card from the server.
 
          There are four possible actions for the client: 
-         CHECK (CK), BET (BT), CALL (CL) and FOLD (FD).
+         CHECK (CHK), BET (BET), CALL (CAL) and FOLD (FLD).
 
       DISCONNECT (DISC):
 
          This command is used to notify the server that the client wants
          to end the TCP session.
             (Discussion about this topic is needed).
-
 
 
 
@@ -237,7 +237,10 @@ INTERNET DRAFT                 POKER KUHN                     22/02/2018
          server in a showdown.
 
          The argument can only contain one of the following three cards:
-         Jack (_K), Queen (_Q), King (_K).
+         Jack (C_K), Queen (C_Q), King (C_K).
+
+         Note that in a showdown the server will only send the CARD
+         command (not an ACTION command followed by the CARD command).
 
       ACTION (ACTN):
 
@@ -247,7 +250,10 @@ INTERNET DRAFT                 POKER KUHN                     22/02/2018
          game has ended.
 
          There are three possible actions for the server: 
-         CHECK (CK), BET (BT) and FOLD (FD).
+         CHECK (CHK), BET (BRT) and FOLD (FLD).
+
+         Note that there is not CALL because is used the CARD command
+         instead (it leads to a showdown).
 
       DISCONNECT (DISC):
 
@@ -259,19 +265,13 @@ INTERNET DRAFT                 POKER KUHN                     22/02/2018
       FAIL (FAIL):
 
          This command is used to notify about any error to the client. 
-
          There are only two possible arguments for this command: 
-         Wrong Action and No Coins.
+         Wrong Action (W_A) and No Coins (N_C).
 
          The first is used to notify that an action received can't be
          performed at the given state of the game and the second is used
          to notify that the client is trying to perform an action which
          requires more coins than it has.
-
-
-
-
-
 
 
  
@@ -297,8 +297,7 @@ INTERNET DRAFT                 POKER KUHN                     22/02/2018
    This also applies to any symbols representing parameter values.
    Argument field is composed for only one argument separated from the
    command by a space.
-   An argument is a two character code, each one being an ASCII
-   character.
+   Each argument is composed by three ASCII characters.
 
 
    The following are the Poker Kuhn commands (spaces in the text are
@@ -318,15 +317,16 @@ INTERNET DRAFT                 POKER KUHN                     22/02/2018
    notation where applicable).
    The DISCONNECT command does not need any argument.
 
-      <player>  ::= "P1" | "P2"
+      <player>  ::= "P_1" | "P_2"
 
-      <card>    ::= "_J" | "_Q" | "_K"
+      <card>    ::= "C_J" | "C_Q" | "C_K"
 
-      <action>  ::= "CK" | "BT" | "CL" | "FD"
+      <action>  ::= "CHK" | "BET" | "CAL" | "FLD"
 
-      <errcode> ::= "WA" | "NC"
+      <errcode> ::= "W_A" | "N_C"
 
       <SP>      ::= The space character (ASCII code 32)
+
 
 
 
@@ -340,24 +340,24 @@ INTERNET DRAFT                 POKER KUHN                     22/02/2018
 
    As explained above each argument is composed by two ASCII characters,
    for example:
-   "P1" would be the ASCII code 80 followed by the ASCII code 49.
+
+   "P_1" would be the ASCII code 80 ("P"), followed by the ASCII code 95
+   ("_") followed by the ASCII code 49 ("1").
 
 
-   The following are syntactically correct commands:
+   The following are examples of syntactically correct commands:
 
-      STRT "P1"
+      STRT "P_1"
 
-      STRT "P2"
+      STRT "P_2"
 
-      CARD "_K"
+      CARD "C_K"
 
-      ACTN "CK"
+      ACTN "CHK"
 
-      FAIL "NC"
+      FAIL "N_C"
 
       DISC
-
-
 
 
 
@@ -402,19 +402,17 @@ INTERNET DRAFT                 POKER KUHN                     22/02/2018
    showdown):
 
       Client (Start as the player 1):
-         STRT "P1"
+         STRT "P_1"
 
       Server (Gives card (Queen)):
-         CARD "_Q"
+         CARD "C_Q"
 
       Client (Action BET):
-         ACTN "BT"
+         ACTN "BET"
 
-      Server (Action CALL):
-         ACTN "CL"
-
-      Server (Shows card):
-         CARD "_K"
+      Server (Shows card (Instead of doing action call and then showing
+      card)):
+         CARD "C_K"
 
       Client (The game has ended and the client disconnects (it can
       start a new game too)):
@@ -422,20 +420,22 @@ INTERNET DRAFT                 POKER KUHN                     22/02/2018
 
 
    Example 2 (Client plays as the second player and the game ends in a
-   showdown):
+   fold by the player 1):
 
       Client (Starts as the player 2):
-         STRT "P2"
+         STRT "P_2"
 
       Server (Gives card (Jack)):
-         CARD "_J"
+         CARD "C_J"
+
+      Server (Action CHECK):
+         ACTN "CHK"
 
       Client (Action BET):
-         ACTN "BT"
+         ACTN "BET"
 
-      Server (Action CARD (Directly shows CARD instead of action CALL
-      followed by CARD)):
-         CARD "_K"
+      Server (Action FOLD):
+         ACTN "FLD"
 
       Client (The game has ended and the client disconnects (it can
       start a new game too)):

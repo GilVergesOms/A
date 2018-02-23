@@ -108,7 +108,8 @@ The player who wants to play connects with the game server using the communicati
 The client has to specify which player wants to be, the first or the second.
 .br
 
-The following graph will define each state and possible actions for each player:
+The following graph will define each state and possible actions for each player,
+it goes from top to down starting from the top:
 
 .nf
                               +-----+
@@ -134,10 +135,7 @@ SHOWDOWN       P1 wins        SHOWDOWN           +-----+
 .fi
 
 
-In a showdown the server will have to send its card to the client and nothing else.
-For example, instead of sending the action call, it directly sends his card. The client already 
-knows that the game ends in a showdown.
-
+Each state is a decision state or a terminal state. Decision states are defined by a box with the player who has to make the decision inside, they can lead to one of the two states below depending on the action chosen. Terminal states are non-decision states where the game ends.
 .bp
 .in 3
 .ti 0
@@ -169,12 +167,13 @@ ACTION (ACTN):
 
 This command is used to notify to the server which action does the client
 choose at a given state of the game. After every action the client has to
-wait for a response unless the game has ended.
+wait for a response unless the game has ended. In a showdown the game ends
+when the client receives the card from the server.
 .br
 
 There are four possible actions for the client: 
 .br
-CHECK (CK), BET (BT), CALL (CL) and FOLD (FD).
+CHECK (CHK), BET (BET), CALL (CAL) and FOLD (FLD).
 
 .ti 6
 DISCONNECT (DISC):
@@ -202,7 +201,10 @@ It is also used to show the card held by the server in a showdown.
 
 The argument can only contain one of the following three cards:
 .br
-Jack (_K), Queen (_Q), King (_K).
+Jack (C_K), Queen (C_Q), King (C_K).
+.br
+
+Note that in a showdown the server will only send the CARD command (not an ACTION command followed by the CARD command).
 
 .ti 6
 ACTION (ACTN):
@@ -214,7 +216,10 @@ response unless the game has ended.
 
 There are three possible actions for the server: 
 .br
-CHECK (CK), BET (BT) and FOLD (FD).
+CHECK (CHK), BET (BRT) and FOLD (FLD).
+.br
+
+Note that there is not CALL because is used the CARD command instead (it leads to a showdown).
 
 .ti 6
 DISCONNECT (DISC):
@@ -231,10 +236,9 @@ FAIL (FAIL):
 
 This command is used to notify about any error to the client. 
 .br
-
 There are only two possible arguments for this command: 
 .br
-Wrong Action and No Coins.
+Wrong Action (W_A) and No Coins (N_C).
 .br
 
 The first is used to notify that an action received can't be performed at the given state of the game and the second is used to notify that the client is trying to perform an action which requires more coins than it has.
@@ -260,7 +264,7 @@ This also applies to any symbols representing parameter values.
 .br
 Argument field is composed for only one argument separated from the command by a space.
 .br
-An argument is a two character code, each one being an ASCII character.
+Each argument is composed by three ASCII characters.
 
 
 The following are the Poker Kuhn commands (spaces in the text are only for the visualization and are not included in the command):
@@ -282,35 +286,36 @@ The syntax of the above argument fields is given below (using BNF notation where
 The DISCONNECT command does not need any argument.
 
 .in 6
-<player>  ::= "P1" | "P2"
+<player>  ::= "P_1" | "P_2"
 
-<card>    ::= "_J" | "_Q" | "_K"
+<card>    ::= "C_J" | "C_Q" | "C_K"
 
-<action>  ::= "CK" | "BT" | "CL" | "FD"
+<action>  ::= "CHK" | "BET" | "CAL" | "FLD"
 
-<errcode> ::= "WA" | "NC"
+<errcode> ::= "W_A" | "N_C"
 
 <SP>      ::= The space character (ASCII code 32)
 
 .bp
 .in 3
 As explained above each argument is composed by two ASCII characters, for example:
-.br
-"P1" would be the ASCII code 80 followed by the ASCII code 49.
+
+"P_1" would be the ASCII code 80 ("P"), 
+followed by the ASCII code 95 ("_") followed by the ASCII code 49 ("1").
 
 
-The following are syntactically correct commands:
+The following are examples of syntactically correct commands:
 
 .in 6
-STRT "P1"
+STRT "P_1"
 
-STRT "P2"
+STRT "P_2"
 
-CARD "_K"
+CARD "C_K"
 
-ACTN "CK"
+ACTN "CHK"
 
-FAIL "NC"
+FAIL "N_C"
 
 DISC
 
@@ -327,29 +332,24 @@ Example 1 (Client plays as the first player and the game ends in a showdown):
 .ti 6
 Client (Start as the player 1):
 .br
-STRT "P1"
+STRT "P_1"
 
 .ti 6
 Server (Gives card (Queen)):
 .br
-CARD "_Q"
+CARD "C_Q"
 
 .ti 6
 Client (Action BET):
 .br
-ACTN "BT"
-
-.ti 6
-Server (Action CALL):
-.br
-ACTN "CL"
-
-.ti 6
-Server (Shows card):
-.br
-CARD "_K"
+ACTN "BET"
 
 .in 6
+Server (Shows card (Instead of doing action call and then showing card)):
+.br
+.ti 9
+CARD "C_K"
+
 Client (The game has ended and the client disconnects (it can start a new game too)):
 .br
 .ti 9
@@ -357,30 +357,35 @@ DISC
 
 
 .in 3
-Example 2 (Client plays as the second player and the game ends in a showdown):
+Example 2 (Client plays as the second player and the game ends in a fold by the player 1):
 
 .in 9
 .ti 6
 Client (Starts as the player 2):
 .br
-STRT "P2"
+STRT "P_2"
 
 .ti 6
 Server (Gives card (Jack)):
 .br
-CARD "_J"
+CARD "C_J"
+
+.ti 6
+Server (Action CHECK):
+.br
+ACTN "CHK"
 
 .ti 6
 Client (Action BET):
 .br
-ACTN "BT"
+ACTN "BET"
+
+.ti 6
+Server (Action FOLD):
+.br
+ACTN "FLD"
 
 .in 6
-Server (Action CARD (Directly shows CARD instead of action CALL followed by CARD)):
-.br
-.ti 9
-CARD "_K"
-
 Client (The game has ended and the client disconnects (it can start a new game too)):
 .br
 .ti 9
