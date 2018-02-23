@@ -106,6 +106,37 @@ One player is the client application and the other is the server application.
 The player who wants to play connects with the game server using the communication port number 1212.
 .br
 The client has to specify which player wants to be, the first or the second.
+.br
+
+The following graph will define each state and possible actions for each player:
+
+.nf
+                              +-----+
+                              | P 1 |
+                              +-----+
+                 BET             |            CHECK
+                  +--------------+--------------+
+                  |                             |
+               +-----+                       +-----+
+               | P 2 |                       | P 2 |
+               +-----+                       +-----+
+  CALL            | FOLD       CHECK            |  BET
+   +--------------+              +------------------+
+   |              |              |                  |
+SHOWDOWN       P1 wins        SHOWDOWN           +-----+
+--------       -------        --------           | P 1 |
+                                                 +-----+
+                                    FOLD            |  CALL
+                                     +--------------+---+
+                                     |                  |
+                                  P2 wins            SHOWDOWN
+                                  -------            --------
+.fi
+
+
+In a showdown the server will have to send its card to the client and nothing else.
+For example, instead of sending the action call, it directly sends his card. The client already 
+knows that the game ends in a showdown.
 
 .bp
 .in 3
@@ -130,6 +161,7 @@ With this command the client can start a game with the server, it has
 to be specified in the arguments if the client wants to play as the first
 or the second player. 
 .br
+
 This command starts the TCP session.
 
 .ti 6
@@ -139,9 +171,10 @@ This command is used to notify to the server which action does the client
 choose at a given state of the game. After every action the client has to
 wait for a response unless the game has ended.
 .br
-There are four possible actions: 
+
+There are four possible actions for the client: 
 .br
-CHECK (CK), BET (BT), CALL (CL) and FOLD (FD)
+CHECK (CK), BET (BT), CALL (CL) and FOLD (FD).
 
 .ti 6
 DISCONNECT (DISC):
@@ -164,10 +197,10 @@ Now, we define the commands used by the server:
 CARD (CARD):
 
 This command is used to notify the client which card does it has in this game.
-It is also used to show the card held by the server in a showdown (Explanation
-of this end and the rules of the game in the section 5).
+It is also used to show the card held by the server in a showdown.
 .br
-There are only three cards:
+
+The argument can only contain one of the following three cards:
 .br
 Jack (_K), Queen (_Q), King (_K).
 
@@ -178,9 +211,10 @@ This command is used to notify the client which action the server decides to tak
 in a given state of the game. After every action the server has to wait for a
 response unless the game has ended.
 .br
-There are four possible actions: 
+
+There are three possible actions for the server: 
 .br
-CHECK (CK), BET (BT), CALL (CL) and FOLD (FD)
+CHECK (CK), BET (BT) and FOLD (FD).
 
 .ti 6
 DISCONNECT (DISC):
@@ -188,7 +222,8 @@ DISCONNECT (DISC):
 This command is used to notify the client that the server is about to end the TCP
 session.
 .br
-.ti 9
+
+.ti 12
 (Discussion about this topic needed).
 
 .ti 6
@@ -196,13 +231,13 @@ FAIL (FAIL):
 
 This command is used to notify about any error to the client. 
 .br
+
 There are only two possible arguments for this command: 
 .br
-Wrong Action and No Coins. 
+Wrong Action and No Coins.
 .br
+
 The first is used to notify that an action received can't be performed at the given state of the game and the second is used to notify that the client is trying to perform an action which requires more coins than it has.
-
-
 
 
 .bp
@@ -216,7 +251,6 @@ Command codes are four alphabetic characters.
 .br
 Upper and lower case alphabetic characters are to be treated identically. 
 
-
 Thus, any of the following may represent the STRT command:
 
 .ti 6
@@ -226,10 +260,10 @@ This also applies to any symbols representing parameter values.
 .br
 Argument field is composed for only one argument separated from the command by a space.
 .br
-An argument is a two digit code, each one being an ASCII character.
+An argument is a two character code, each one being an ASCII character.
 
 
-The following are the Poker commands (spaces in the text are only for the visualization):
+The following are the Poker Kuhn commands (spaces in the text are only for the visualization and are not included in the command):
 
 .in 6
 STRT <SP> <player>
@@ -270,11 +304,15 @@ The following are syntactically correct commands:
 .in 6
 STRT "P1"
 
+STRT "P2"
+
 CARD "_K"
 
 ACTN "CK"
 
 FAIL "NC"
+
+DISC
 
 .bp
 .in 3
@@ -319,7 +357,7 @@ DISC
 
 
 .in 3
-Example 2 (Client plays as the second player and the game ends in a fold by the server):
+Example 2 (Client plays as the second player and the game ends in a showdown):
 
 .in 9
 .ti 6
@@ -337,12 +375,12 @@ Client (Action BET):
 .br
 ACTN "BT"
 
-.ti 6
-Server (Action FOLD):
-.br
-ACTN "FD"
-
 .in 6
+Server (Action CARD (Directly shows CARD instead of action CALL followed by CARD)):
+.br
+.ti 9
+CARD "_K"
+
 Client (The game has ended and the client disconnects (it can start a new game too)):
 .br
 .ti 9
@@ -364,7 +402,7 @@ If the first player checks the second player can check or bet.
 If the second player checks the game ends in a showdown (explained below).
 
 .in 3
-Aside from which player bet the next player can call or fold.
+Aside from which player bets the next player can call or fold.
 .in 6
 If that player calls it has to put another coin and the game ends in a showdown.
 .br
